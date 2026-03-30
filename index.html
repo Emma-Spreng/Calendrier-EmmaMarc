@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Calendrier 2026 — Emma & Marc</title>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@900&family=Nunito:wght@600;700&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Nunito',sans-serif;background:#faf8f5;min-height:100vh;display:flex;flex-direction:column;align-items:center}
+.site-header{width:100%;text-align:center;padding:2rem 1rem 1rem}
+.site-header h1{font-family:'Big Shoulders Display',sans-serif;font-size:clamp(1.6rem,5vw,3rem);font-weight:900;color:#2a2a2a;text-transform:uppercase;letter-spacing:.04em}
+.calendar-card{width:min(680px,96vw);border-radius:24px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.13);margin-bottom:3rem}
+.month-header{position:relative;height:160px;display:flex;align-items:flex-end;padding:0 28px 18px;overflow:hidden}
+.month-header canvas{position:absolute;inset:0;width:100%;height:100%}
+.month-name{font-family:'Big Shoulders Display',sans-serif;font-weight:900;font-size:clamp(3.5rem,11vw,6.5rem);text-transform:uppercase;line-height:1;position:relative;z-index:2;text-shadow:0 2px 10px rgba(0,0,0,.15)}
+.month-year{font-family:'Nunito',sans-serif;font-size:.95rem;font-weight:700;position:absolute;top:16px;right:22px;z-index:2;opacity:.7}
+.nav-row{display:flex;align-items:center;justify-content:space-between;padding:13px 20px;background:white}
+.nav-btn{background:none;border:2px solid #2a2a2a;border-radius:50%;width:36px;height:36px;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;color:#2a2a2a}
+.nav-btn:hover{background:#2a2a2a;color:white}
+.nav-label{font-family:'Big Shoulders Display',sans-serif;font-size:1rem;font-weight:900;text-transform:uppercase;letter-spacing:.05em;color:#2a2a2a}
+.grid-wrapper{padding:0 16px 22px;background:white}
+.weekdays{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:4px}
+.weekdays span{text-align:center;font-size:.65rem;font-weight:700;text-transform:uppercase;color:#999;padding:7px 0;font-family:'Nunito',sans-serif}
+.days-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.day-cell{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:8px;cursor:pointer;font-family:'Nunito',sans-serif;font-size:.88rem;font-weight:700;color:#2a2a2a;transition:all .12s;position:relative}
+.day-cell:hover{filter:brightness(.88);transform:scale(1.06)}
+.day-cell.empty{background:transparent!important;cursor:default;pointer-events:none}
+.day-cell.today{outline:2.5px solid #2a2a2a;outline-offset:1px}
+.day-cell.has-events::after{content:'';position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:#c0392b}
+.day-cell.selected{outline:2px solid rgba(0,0,0,.4);outline-offset:1px}
+.drawer{background:white;border-top:1px solid #eee;padding:16px 22px;display:none}
+.drawer.visible{display:block}
+.drawer-date{font-family:'Big Shoulders Display',sans-serif;font-size:1.2rem;font-weight:900;text-transform:uppercase;color:#2a2a2a;margin-bottom:10px}
+.event-item{display:flex;align-items:flex-start;gap:10px;padding:7px 0;border-bottom:1px solid #f5f5f5;font-size:.85rem}
+.event-item:last-child{border-bottom:none}
+.event-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.event-title{font-weight:700;color:#2a2a2a;font-family:'Nunito',sans-serif}
+.event-time{color:#aaa;font-size:.78rem;margin-top:2px;font-family:'Nunito',sans-serif}
+.no-events{color:#ccc;font-size:.85rem;font-style:italic;font-family:'Nunito',sans-serif}
+.loading{color:#aaa;font-size:.85rem;font-family:'Nunito',sans-serif;font-style:italic}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <h1>Calendrier 2026 — Emma &amp; Marc</h1>
+</header>
+
+<div class="calendar-card">
+  <div class="month-header" id="monthHeader">
+    <canvas id="patCanvas" width="680" height="160"></canvas>
+    <span class="month-name" id="monthName"></span>
+    <span class="month-year">2026</span>
+  </div>
+  <div class="nav-row">
+    <button class="nav-btn" id="prevBtn">&#8592;</button>
+    <span class="nav-label" id="navLabel"></span>
+    <button class="nav-btn" id="nextBtn">&#8594;</button>
+  </div>
+  <div class="grid-wrapper">
+    <div class="weekdays">
+      <span>Lu</span><span>Ma</span><span>Me</span><span>Je</span><span>Ve</span><span>Sa</span><span>Di</span>
+    </div>
+    <div class="days-grid" id="daysGrid"></div>
+  </div>
+  <div class="drawer" id="drawer">
+    <div class="drawer-date" id="drawerDate"></div>
+    <div id="drawerEvents"></div>
+  </div>
+</div>
+
+<script>
+const API_KEY = "AIzaSyCtxCzRbZFleCurLJECoIbu8dfXESb82gA";
+const CAL_ID = "4a40e0db71496c119686970cbde639535e713f0eed6b994072634dfc0a05ce53@group.calendar.google.com";
+
+const MONTHS = ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
+const SZ = 22;
+
+const MS = [
+  {bg:"#f5dde5",ch:"#d4849a",cell:"rgba(240,195,210,.82)",nc:"#7a1a30"},
+  {bg:"#dce8f5",ch:"#7aaad4",cell:"rgba(185,215,242,.82)",nc:"#1a3a6a"},
+  {bg:"#f0ebe0",ch:"#c4a87a",cell:"rgba(235,220,190,.82)",nc:"#6a4a10"},
+  {bg:"#e0ede8",ch:"#7aaa90",cell:"rgba(190,225,205,.82)",nc:"#1a4a30"},
+  {bg:"#f5e8d5",ch:"#c87848",cell:"rgba(242,215,180,.82)",nc:"#7a3010"},
+  {bg:"#ede0f0",ch:"#a87ac8",cell:"rgba(220,190,238,.82)",nc:"#4a1a6a"},
+  {bg:"#fdf0d5",ch:"#d4a840",cell:"rgba(248,228,175,.82)",nc:"#6a4a00"},
+  {bg:"#e8ddd5",ch:"#a87860",cell:"rgba(228,208,190,.82)",nc:"#5a2a10"},
+  {bg:"#d8e8e0",ch:"#5a9878",cell:"rgba(185,220,205,.82)",nc:"#1a4a30"},
+  {bg:"#f5e0d8",ch:"#c86848",cell:"rgba(242,205,188,.82)",nc:"#7a2a10"},
+  {bg:"#dde0e8",ch:"#6878a8",cell:"rgba(195,205,228,.82)",nc:"#1a2a5a"},
+  {bg:"#f0d8d8",ch:"#b84858",cell:"rgba(232,190,195,.82)",nc:"#6a1020"},
+];
+
+// Cache des événements par mois
+const eventsCache = {};
+
+function drawVichy(ctx, W, H, bg, ch) {
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+  for(let i=0;i<W;i+=SZ){ctx.fillStyle=ch;ctx.globalAlpha=.45;ctx.fillRect(i,0,SZ/2,H);}
+  for(let j=0;j<H;j+=SZ){ctx.fillStyle=ch;ctx.globalAlpha=.45;ctx.fillRect(0,j,W,SZ/2);}
+  for(let i=0;i<W;i+=SZ)for(let j=0;j<H;j+=SZ){ctx.fillStyle=ch;ctx.globalAlpha=.28;ctx.fillRect(i,j,SZ/2,SZ/2);}
+  ctx.globalAlpha=1;
+}
+
+function formatTime(dateStr) {
+  if(!dateStr) return '';
+  if(dateStr.length === 10) return 'Toute la journée';
+  const d = new Date(dateStr);
+  return d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+}
+
+function getEventColor(i) {
+  const colors = ["#e05a5a","#5a9ae0","#a05ae0","#5ae08a","#e0a05a","#5ae0c8","#e05aa0"];
+  return colors[i % colors.length];
+}
+
+async function fetchEvents(month) {
+  if(eventsCache[month]) return eventsCache[month];
+  const timeMin = new Date(2026, month, 1).toISOString();
+  const timeMax = new Date(2026, month+1, 0, 23, 59, 59).toISOString();
+  const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CAL_ID)}/events?key=${API_KEY}&timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime&maxResults=100`;
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    const byDay = {};
+    if(data.items) {
+      data.items.forEach((ev, i) => {
+        const start = ev.start.dateTime || ev.start.date;
+        const dateObj = new Date(start); const day = start.length === 10 ? parseInt(start.split('-')[2]) : dateObj.getDate();
+        if(!byDay[day]) byDay[day] = [];
+        byDay[day].push({
+          t: ev.summary || ev.title || ev.description || 'Sans titre',
+          h: formatTime(start),
+          c: getEventColor(i)
+        });
+      });
+    }
+    eventsCache[month] = byDay;
+    return byDay;
+  } catch(e) {
+    console.error('Erreur Google Calendar:', e);
+    return {};
+  }
+}
+
+let currentMonth = new Date().getMonth();
+let selectedCell = null;
+let currentEvents = {};
+
+async function render() {
+  const m = currentMonth;
+  const s = MS[m];
+
+  // Draw pattern
+  const canvas = document.getElementById('patCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.offsetWidth || 680;
+  canvas.width = W; canvas.height = 160;
+  drawVichy(ctx, W, 160, s.bg, s.ch);
+
+  document.getElementById('monthName').textContent = MONTHS[m];
+  document.getElementById('monthName').style.color = s.nc;
+  document.getElementById('navLabel').textContent = MONTHS[m] + ' 2026';
+  document.getElementById('drawer').classList.remove('visible');
+  selectedCell = null;
+
+  // Build grid with loading state
+  const grid = document.getElementById('daysGrid');
+  grid.innerHTML = '';
+
+  const fd = new Date(2026, m, 1).getDay();
+  const off = fd === 0 ? 6 : fd - 1;
+  const dim = new Date(2026, m+1, 0).getDate();
+  const td = new Date();
+  const isNow = td.getFullYear() === 2026 && td.getMonth() === m;
+
+  for(let i=0;i<off;i++){
+    const e = document.createElement('div');
+    e.className = 'day-cell empty';
+    grid.appendChild(e);
+  }
+
+  // Fetch events for this month
+  currentEvents = await fetchEvents(m);
+
+  for(let d=1;d<=dim;d++){
+    const cell = document.createElement('div');
+    cell.className = 'day-cell';
+    cell.textContent = d;
+    cell.style.background = s.cell;
+    const evs = currentEvents[d] || [];
+    if(evs.length) cell.classList.add('has-events');
+    if(isNow && d === td.getDate()) cell.classList.add('today');
+    cell.addEventListener('click', () => showDrawer(d, evs, cell));
+    grid.appendChild(cell);
+  }
+}
+
+function showDrawer(day, evs, cell) {
+  const drawer = document.getElementById('drawer');
+  if(selectedCell === cell) {
+    selectedCell = null;
+    cell.classList.remove('selected');
+    drawer.classList.remove('visible');
+    return;
+  }
+  if(selectedCell) selectedCell.classList.remove('selected');
+  selectedCell = cell;
+  cell.classList.add('selected');
+
+  document.getElementById('drawerDate').textContent = MONTHS[currentMonth] + ' ' + day + ' 2026';
+  document.getElementById('drawerEvents').innerHTML = evs.length
+    ? evs.map(e => `<div class="event-item"><span class="event-dot" style="background:${e.c}"></span><div><div class="event-title">${e.t}</div><div class="event-time">${e.h}</div></div></div>`).join('')
+    : '<p class="no-events">Journée libre — profitez-en ✨</p>';
+  drawer.classList.add('visible');
+}
+
+document.getElementById('prevBtn').addEventListener('click', () => { currentMonth = (currentMonth+11)%12; render(); });
+document.getElementById('nextBtn').addEventListener('click', () => { currentMonth = (currentMonth+1)%12; render(); });
+
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,743 @@
+:root{
+  --bg: #fbf6f0;
+  --ink: #1f1b20;
+  --muted: rgba(31,27,34,.7);
+  --paper: #fffaf3;
+  --paper2: #fff4e7;
+  --shadow: 0 18px 40px rgba(31, 24, 20, .18);
+  --shadow2: 0 10px 22px rgba(31, 24, 20, .16);
+  --ring: 0 0 0 3px rgba(70, 112, 200, .30);
+
+  --display: "Big Shoulders Display", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --hand: "Nunito", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --cal: "Nunito", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  --radius-lg: 26px;
+  --radius-md: 18px;
+  --radius-sm: 12px;
+}
+
+*{ box-sizing:border-box; }
+html,body{ height:100%; }
+body{
+  margin:0;
+  color:var(--ink);
+  background: var(--bg);
+  font-family: var(--hand);
+  letter-spacing: .2px;
+  overflow-x:hidden;
+}
+
+/* Subtle paper texture + playful dots */
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  background:
+    radial-gradient(circle at 12% 18%, rgba(255, 203, 125, .18) 0 2px, transparent 3px) 0 0/28px 28px,
+    radial-gradient(circle at 78% 62%, rgba(140, 202, 255, .18) 0 2px, transparent 3px) 0 0/34px 34px,
+    radial-gradient(circle at 42% 82%, rgba(166, 235, 188, .15) 0 2px, transparent 3px) 0 0/30px 30px,
+    linear-gradient(180deg, rgba(255,255,255,.72), rgba(255,255,255,0));
+  mix-blend-mode:multiply;
+  opacity:.55;
+}
+
+.skip-link{
+  position:absolute;
+  left:-999px;
+  top:10px;
+  padding:10px 12px;
+  background:#fff;
+  border-radius:12px;
+  box-shadow: var(--shadow2);
+}
+.skip-link:focus{ left:12px; outline:none; box-shadow: var(--shadow2), var(--ring); }
+
+.app{
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 18px 18px 30px;
+}
+
+.topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  padding: 18px 4px 18px;
+}
+
+.topbar__title{
+  margin:0;
+  font-family: var(--display);
+  font-weight:900;
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #201c24;
+}
+
+.hand{ font-family: var(--hand); }
+.display{ font-family: var(--display); }
+
+.topbar__controls{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+
+.chip{
+  border:0;
+  cursor:pointer;
+  border-radius: 999px;
+  padding: 10px 12px;
+  color: var(--ink);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.74));
+  box-shadow: 0 10px 18px rgba(31, 24, 20, .12);
+  transition: transform .12s ease, box-shadow .12s ease;
+  font-family: var(--hand);
+  font-size: 16px;
+}
+.chip:hover{ transform: translateY(-1px) rotate(-.15deg); box-shadow: var(--shadow2); }
+.chip:active{ transform: translateY(0); }
+.chip:focus{ outline:none; box-shadow: var(--shadow2), var(--ring); }
+
+.content{ display:flex; flex-direction:column; gap:16px; }
+
+.year__header{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:12px;
+  padding: 4px 6px;
+}
+.year__title{
+  margin:0;
+  font-family: var(--display);
+  font-weight:800;
+  letter-spacing: .2px;
+  font-size: 24px;
+}
+.year__hint{
+  margin:0;
+  color: var(--muted);
+  font-size: 14px;
+}
+kbd{
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 8px;
+  background: rgba(255,255,255,.7);
+  box-shadow: 0 6px 14px rgba(31,24,20,.10);
+}
+
+.months{
+  display:grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+@media (max-width: 1050px){
+  .months{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 700px){
+  .topbar{ align-items:flex-start; flex-direction:column; }
+  .months{ grid-template-columns: 1fr; }
+}
+
+.month{
+  border-radius: var(--radius-lg);
+  background: var(--m-bg, #ffd0df);
+  box-shadow: var(--shadow2);
+  overflow:hidden;
+  position:relative;
+  border: 1px solid rgba(0,0,0,.12);
+  isolation: isolate;
+}
+
+.month::before{
+  content:"";
+  position:absolute;
+  inset: 0;
+  pointer-events:none;
+  background: var(--m-pattern, none);
+  opacity: 1;
+  mix-blend-mode: normal;
+  z-index: 0;
+}
+
+.month::after{
+  content:"";
+  position:absolute;
+  inset: 0;
+  pointer-events:none;
+  background: var(--m-hero, none);
+  opacity: 1;
+  mix-blend-mode: normal;
+  z-index: 0;
+}
+
+.month__header{
+  padding: 14px 14px 12px;
+  display:block;
+  position:relative;
+  min-height: 84px;
+  z-index: 1;
+}
+.month__name{
+  margin:0;
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: clamp(3rem, 8vw, 6rem);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--m-text, var(--m-ink, #fff));
+  position:absolute;
+  left: 14px;
+  top: 12px;
+  transform: none;
+  z-index: 3;
+  text-shadow: var(--m-textShadow, 0 2px 10px rgba(0,0,0,.30));
+  line-height: .95;
+  pointer-events:none;
+}
+.month__meta{
+  position:absolute;
+  right: 12px;
+  top: 14px;
+  color: var(--m-textSoft, var(--m-inkSoft, rgba(255,255,255,.84)));
+  font-size: 14px;
+  font-family: var(--display);
+  font-weight: 800;
+  letter-spacing: .3px;
+  z-index: 3;
+}
+
+.month__grid{
+  padding: 8px 12px 14px;
+  position:relative;
+  z-index: 1;
+}
+
+.dow{
+  display:grid;
+  grid-template-columns: repeat(7, minmax(0,1fr));
+  gap: 6px;
+  padding: 2px 2px 8px;
+}
+.dow__cell{
+  font-size: 14px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--m-textSoft, var(--m-inkSoft, rgba(255,255,255,.82)));
+  text-align:center;
+  font-family: var(--display);
+  font-weight: 700;
+  text-shadow: var(--m-textShadow, none);
+}
+
+.days{
+  display:grid;
+  grid-template-columns: repeat(7, minmax(0,1fr));
+  gap: 6px;
+}
+
+.day{
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid var(--m-gridBorder, rgba(0,0,0,.06));
+  background: transparent;
+  cursor:pointer;
+  padding: 6px 6px 5px;
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  position:relative;
+  overflow:hidden;
+  transition: transform .12s ease, box-shadow .12s ease, color .12s ease;
+  color: var(--m-text, var(--m-ink, rgba(255,255,255,.96)));
+  font-family: var(--cal);
+  font-size: 16px;
+  line-height: 1;
+  text-shadow: var(--m-textShadow, none);
+}
+.day::before{
+  content:"";
+  position:absolute;
+  inset:4px;
+  border-radius: 12px;
+  background: var(--m-gridBg, rgba(255,255,255,.75));
+  z-index: -1;
+}
+.day:hover{
+  transform: translateY(-1px);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+.day:focus{
+  outline:none;
+  box-shadow: var(--ring);
+}
+.day:active{ transform: translateY(0); }
+
+.day--pad{
+  opacity: .26;
+  cursor: default;
+  background: transparent;
+}
+.day--pad:hover{ transform:none; box-shadow:none; }
+
+.day__num{ font-weight: 700; }
+
+/* no event dots on month cards */
+.day--today{
+  text-decoration: underline;
+  text-decoration-thickness: 3px;
+  text-underline-offset: 4px;
+}
+
+.day--selected{
+  text-decoration: underline;
+  text-decoration-thickness: 3px;
+  text-underline-offset: 4px;
+}
+
+/* Month backgrounds + precise retro patterns */
+/* JANUARY: #C8A8D4, tiny white flowers + green leaves */
+.month[data-month="0"]{
+  --m-bg: #C8A8D4;
+  --m-ink: #1d1b1c;
+  --m-inkSoft: rgba(29,27,28,.78);
+  --m-text: #1d1b1c;
+  --m-textSoft: rgba(29,27,28,.86);
+  --m-textShadow: none;
+  --m-gridBg: rgba(237, 223, 245, 0.75);
+  --m-gridBorder: rgba(172, 144, 192, 0.9);
+  --m-pattern:
+    radial-gradient(circle at 6px 6px, #ffffff 0 6px, transparent 7px) 0 0/30px 30px,
+    radial-gradient(circle at 10px 6px, #7AB648 0 2px, transparent 3px) 0 0/30px 30px,
+    radial-gradient(circle at 6px 10px, #7AB648 0 2px, transparent 3px) 0 0/30px 30px;
+}
+
+/* FEBRUARY: #C4405A, rounded pink pill grid */
+.month[data-month="1"]{
+  --m-bg:#C4405A;
+  --m-ink:#ffffff;
+  --m-inkSoft:rgba(255,255,255,.9);
+  --m-text:#ffffff;
+  --m-textSoft:rgba(255,255,255,.92);
+  --m-textShadow: 0 2px 10px rgba(0,0,0,.45);
+  --m-gridBg: rgba(255, 220, 225, 0.75);
+  --m-gridBorder: rgba(215, 132, 151, 0.9);
+  --m-pattern:
+    radial-gradient(999px 12px at 9px 12px, #E8849A 0 9px, transparent 10px) 0 0/26px 32px,
+    radial-gradient(999px 12px at 17px 12px, #E8849A 0 9px, transparent 10px) 0 0/26px 32px;
+}
+
+/* MARCH: #E8724A, alternating green stars + orange sunbursts */
+.month[data-month="2"]{
+  --m-bg:#E8724A;
+  --m-ink:#1b120c;
+  --m-inkSoft:rgba(27,18,12,.78);
+  --m-text:#1b120c;
+  --m-textSoft:rgba(27,18,12,.86);
+  --m-textShadow: none;
+  --m-gridBg: rgba(252, 209, 185, 0.75);
+  --m-gridBorder: rgba(220, 133, 90, 0.9);
+  --m-pattern:
+    conic-gradient(from 45deg, #3A7D44 0 25%, transparent 0 50%, #3A7D44 0 75%, transparent 0) 0 0/35px 35px,
+    radial-gradient(circle at 22px 22px, #C4522A 0 8px, transparent 9px) 0 0/35px 35px;
+}
+
+/* APRIL: #F2D4D8, tiny blush flowers with cream centers */
+.month[data-month="3"]{
+  --m-bg:#F2D4D8;
+  --m-ink:#351921;
+  --m-inkSoft:rgba(53,25,33,.78);
+  --m-text:#351921;
+  --m-textSoft:rgba(53,25,33,.86);
+  --m-textShadow: none;
+  --m-gridBg: rgba(250, 234, 238, 0.75);
+  --m-gridBorder: rgba(214, 152, 167, 0.9);
+  --m-pattern:
+    radial-gradient(circle at 8px 8px, #D4849A 0 3px, transparent 4px) 0 0/25px 25px,
+    radial-gradient(circle at 8px 8px, #F8ECE4 0 1.5px, transparent 2px) 0 0/25px 25px;
+}
+
+/* MAY: #4A8C5C, woven darker green capsules */
+.month[data-month="4"]{
+  --m-bg:#4A8C5C;
+  --m-ink:#0b140f;
+  --m-inkSoft:rgba(11,20,15,.8);
+  --m-text:#0b140f;
+  --m-textSoft:rgba(11,20,15,.88);
+  --m-textShadow:none;
+  --m-gridBg: rgba(193, 220, 199, 0.75);
+  --m-gridBorder: rgba(77, 133, 90, 0.9);
+  --m-pattern:
+    radial-gradient(999px 11px at 7px 11px, #2D6B42 0 7px, transparent 8px) 0 0/22px 26px,
+    radial-gradient(999px 11px at 15px 11px, #2D6B42 0 7px, transparent 8px) 0 0/22px 26px;
+}
+
+/* JUNE: #7AB648, large purple flowers with lavender centers */
+.month[data-month="5"]{
+  --m-bg:#7AB648;
+  --m-ink:#101b09;
+  --m-inkSoft:rgba(16,27,9,.8);
+  --m-text:#101b09;
+  --m-textSoft:rgba(16,27,9,.88);
+  --m-textShadow:none;
+  --m-gridBg: rgba(208, 236, 177, 0.75);
+  --m-gridBorder: rgba(115, 168, 60, 0.9);
+  --m-pattern:
+    radial-gradient(circle at 18px 18px, #8B5CA8 0 10px, transparent 11px) 0 0/40px 40px,
+    radial-gradient(circle at 18px 18px, #C4A0D4 0 4px, transparent 5px) 0 0/40px 40px;
+}
+
+/* JULY: #F5E6D0, wavy coral + pink horizontals */
+.month[data-month="6"]{
+  --m-bg:#F5E6D0;
+  --m-ink:#231713;
+  --m-inkSoft:rgba(35,23,19,.78);
+  --m-text:#231713;
+  --m-textSoft:rgba(35,23,19,.86);
+  --m-textShadow:none;
+  --m-gridBg: rgba(254, 246, 232, 0.75);
+  --m-gridBorder: rgba(214, 187, 150, 0.9);
+  --m-pattern:
+    repeating-linear-gradient(180deg,
+      rgba(232,114,74,1) 0 4px,
+      transparent 4px 16px),
+    repeating-linear-gradient(180deg,
+      rgba(232,132,154,1) 0 4px,
+      transparent 4px 16px);
+}
+
+/* AUGUST: #8B2030, 30px checkerboard with teal + tiny flowers */
+.month[data-month="7"]{
+  --m-bg:#8B2030;
+  --m-ink:#fdf7f7;
+  --m-inkSoft:rgba(253,247,247,.9);
+  --m-text:#ffffff;
+  --m-textSoft:rgba(255,255,255,.94);
+  --m-textShadow: 0 2px 10px rgba(0,0,0,.45);
+  --m-gridBg: rgba(215, 152, 162, 0.75);
+  --m-gridBorder: rgba(123, 31, 52, 0.9);
+  --m-pattern:
+    linear-gradient(90deg, #8B2030 0 30px, #2D8B7A 30px 60px) 0 0/60px 60px,
+    linear-gradient(180deg, #8B2030 0 30px, #2D8B7A 30px 60px) 0 0/60px 60px,
+    radial-gradient(circle at 45px 45px, #4AAA8C 0 5px, transparent 6px) 0 0/60px 60px,
+    radial-gradient(circle at 45px 45px, #ffffff 0 2px, transparent 3px) 0 0/60px 60px;
+}
+
+/* SEPTEMBER: #E8A84A, 40px amber + lavender checkerboard */
+.month[data-month="8"]{
+  --m-bg:#E8A84A;
+  --m-ink:#25180a;
+  --m-inkSoft:rgba(37,24,10,.8);
+  --m-text:#25180a;
+  --m-textSoft:rgba(37,24,10,.88);
+  --m-textShadow:none;
+  --m-gridBg: rgba(248, 216, 150, 0.75);
+  --m-gridBorder: rgba(212, 158, 70, 0.9);
+  --m-pattern:
+    linear-gradient(90deg, #E8A84A 0 40px, #C4A0D4 40px 80px) 0 0/80px 80px,
+    linear-gradient(180deg, #E8A84A 0 40px, #C4A0D4 40px 80px) 0 0/80px 80px;
+}
+
+/* OCTOBER: #8B2030, ogee/scallop in pink */
+.month[data-month="9"]{
+  --m-bg:#8B2030;
+  --m-ink:#fdf7f7;
+  --m-inkSoft:rgba(253,247,247,.9);
+  --m-text:#ffffff;
+  --m-textSoft:rgba(255,255,255,.94);
+  --m-textShadow: 0 2px 10px rgba(0,0,0,.45);
+  --m-gridBg: rgba(215, 152, 162, 0.75);
+  --m-gridBorder: rgba(123, 31, 52, 0.9);
+  --m-pattern:
+    radial-gradient(circle at 15px 20px, #E8849A 0 15px, transparent 16px) 0 0/30px 40px,
+    radial-gradient(circle at 0 20px, #E8849A 0 15px, transparent 16px) 15px 20px/30px 40px;
+}
+
+/* NOVEMBER: #2D5A3A, large lavender + purple retro flowers */
+.month[data-month="10"]{
+  --m-bg:#2D5A3A;
+  --m-ink:#f6f3fb;
+  --m-inkSoft:rgba(246,243,251,.9);
+  --m-text:#ffffff;
+  --m-textSoft:rgba(255,255,255,.94);
+  --m-textShadow: 0 2px 10px rgba(0,0,0,.45);
+  --m-gridBg: rgba(129, 165, 143, 0.75);
+  --m-gridBorder: rgba(40, 94, 62, 0.9);
+  --m-pattern:
+    radial-gradient(circle at 20px 20px, #C4A0D4 0 12px, transparent 13px) 0 0/50px 50px,
+    radial-gradient(circle at 20px 20px, #8B5CA8 0 7px, transparent 8px) 0 0/50px 50px,
+    radial-gradient(circle at 45px 45px, #8B5CA8 0 12px, transparent 13px) 0 0/50px 50px,
+    radial-gradient(circle at 45px 45px, #C4A0D4 0 7px, transparent 8px) 0 0/50px 50px;
+}
+
+/* DECEMBER: #E8849A, big orange daisies with white centers + some in lighter pink */
+.month[data-month="11"]{
+  --m-bg:#E8849A;
+  --m-ink:#211014;
+  --m-inkSoft:rgba(33,16,20,.8);
+  --m-text:#211014;
+  --m-textSoft:rgba(33,16,20,.88);
+  --m-textShadow:none;
+  --m-gridBg: rgba(245, 207, 218, 0.75);
+  --m-gridBorder: rgba(214, 132, 151, 0.9);
+  --m-pattern:
+    radial-gradient(circle at 18px 18px, #E8724A 0 14px, transparent 15px) 0 0/45px 45px,
+    radial-gradient(circle at 18px 18px, #ffffff 0 4px, transparent 5px) 0 0/45px 45px,
+    radial-gradient(circle at 40px 40px, #F2C4D0 0 14px, transparent 15px) 0 0/45px 45px,
+    radial-gradient(circle at 40px 40px, #ffffff 0 4px, transparent 5px) 0 0/45px 45px;
+}
+
+/* (intentionally no sticker decorations on month cards) */
+
+/* Drawer */
+.drawer{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  opacity:0;
+  transition: opacity .14s ease;
+  z-index: 50;
+}
+.drawer.isOpen{
+  opacity:1;
+  pointer-events:auto;
+}
+.drawer__backdrop{
+  position:absolute;
+  inset:0;
+  background: rgba(18, 14, 16, .35);
+  backdrop-filter: blur(2px);
+}
+.drawer__panel{
+  position:absolute;
+  right: 16px;
+  top: 16px;
+  bottom: 16px;
+  width: min(460px, calc(100vw - 32px));
+  border-radius: var(--radius-lg);
+  overflow:hidden;
+  box-shadow: var(--shadow);
+  transform: translateX(12px);
+  transition: transform .16s ease;
+}
+.drawer.isOpen .drawer__panel{ transform: translateX(0); }
+.drawer__paper{
+  height:100%;
+  background:
+    radial-gradient(circle at 18% 12%, rgba(255, 203, 125, .22), transparent 48%),
+    radial-gradient(circle at 76% 28%, rgba(140, 202, 255, .20), transparent 46%),
+    radial-gradient(circle at 48% 84%, rgba(166, 235, 188, .18), transparent 50%),
+    linear-gradient(180deg, rgba(255, 250, 243, .98), rgba(255, 244, 231, .94));
+  display:flex;
+  flex-direction:column;
+}
+.drawer__header{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:12px;
+  padding: 16px 16px 12px;
+  border-bottom: 1px dashed rgba(42,42,42,.18);
+  position:relative;
+}
+.drawer__header::after{
+  content:"";
+  position:absolute;
+  left: 14px;
+  bottom: -10px;
+  width: 110px;
+  height: 20px;
+  transform: rotate(-4deg);
+  border-radius: 12px;
+  background: rgba(255, 206, 217, .72);
+  box-shadow: 0 10px 18px rgba(31, 24, 20, .08);
+}
+.drawer__kicker{
+  font-size: 16px;
+  color: rgba(42,42,42,.68);
+}
+.drawer__title{
+  margin: 2px 0 0;
+  font-size: 26px;
+  font-weight: 800;
+}
+.iconBtn{
+  border:0;
+  cursor:pointer;
+  background: rgba(255,255,255,.8);
+  border-radius: 14px;
+  width: 44px;
+  height: 44px;
+  display:grid;
+  place-items:center;
+  box-shadow: 0 10px 18px rgba(31, 24, 20, .12);
+  transition: transform .12s ease, box-shadow .12s ease;
+  font-family: var(--display);
+  font-weight: 800;
+}
+.iconBtn:hover{ transform: translateY(-1px) rotate(-.5deg); box-shadow: var(--shadow2); }
+.iconBtn:focus{ outline:none; box-shadow: var(--shadow2), var(--ring); }
+
+.drawer__body{
+  padding: 14px 16px 16px;
+  overflow:auto;
+  display:flex;
+  flex-direction:column;
+  gap: 14px;
+}
+
+.dayMeta{
+  display:flex;
+  flex-wrap:wrap;
+  gap: 10px;
+}
+.pill{
+  display:inline-flex;
+  align-items:center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.75);
+  border: 1px solid rgba(42,42,42,.07);
+  box-shadow: 0 10px 18px rgba(31, 24, 20, .08);
+  font-size: 16px;
+}
+.pill__dot{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  background: rgba(255, 160, 190, .95);
+  box-shadow: 0 0 0 3px rgba(255,255,255,.85);
+}
+.pill__dot--blue{ background: rgba(140, 202, 255, .95); }
+.pill__dot--green{ background: rgba(166, 235, 188, .95); }
+.pill__dot--yellow{ background: rgba(255, 203, 125, .95); }
+
+.events{
+  border-radius: var(--radius-lg);
+  background: rgba(255,255,255,.74);
+  border: 1px solid rgba(42,42,42,.06);
+  box-shadow: 0 12px 22px rgba(31, 24, 20, .10);
+  overflow:hidden;
+}
+.events__header{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:10px;
+  padding: 14px 14px 10px;
+  border-bottom: 1px dashed rgba(42,42,42,.18);
+}
+.events__title{
+  margin:0;
+  font-family: var(--display);
+  font-weight: 800;
+  letter-spacing:.2px;
+  font-size: 18px;
+}
+.events__hint{
+  font-size: 14px;
+  color: rgba(42,42,42,.66);
+}
+.events__list{
+  list-style:none;
+  margin: 0;
+  padding: 10px 10px 12px;
+  display:flex;
+  flex-direction:column;
+  gap: 10px;
+}
+.event{
+  border-radius: 18px;
+  padding: 12px 12px 10px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.78));
+  border: 1px solid rgba(42,42,42,.06);
+  box-shadow: 0 10px 18px rgba(31, 24, 20, .08);
+  position:relative;
+  overflow:hidden;
+}
+.event::before{
+  content:"";
+  position:absolute;
+  inset: 0 auto 0 0;
+  width: 10px;
+  background: var(--event-accent, rgba(255, 160, 190, .95));
+}
+.event__top{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+}
+.event__title{
+  margin:0;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 17px;
+}
+.event__time{
+  flex: 0 0 auto;
+  font-size: 14px;
+  color: rgba(42,42,42,.70);
+  font-family: var(--display);
+  font-weight: 800;
+}
+.event__desc{
+  margin: 6px 0 0;
+  font-size: 16px;
+  color: rgba(42,42,42,.72);
+}
+.event__tags{
+  margin-top: 10px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.tag{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .78);
+  border: 1px dashed rgba(42,42,42,.18);
+  font-size: 14px;
+  color: rgba(42,42,42,.70);
+}
+.tag__dot{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background: var(--event-accent, rgba(255, 160, 190, .95));
+  box-shadow: 0 0 0 3px rgba(255,255,255,.86);
+}
+
+.events__empty{
+  padding: 18px 14px 18px;
+}
+.events__emptyTitle{
+  font-weight: 800;
+  font-size: 18px;
+}
+.events__emptyCopy{
+  margin-top: 4px;
+  font-size: 18px;
+  color: rgba(42,42,42,.72);
+}
+
+@media (prefers-reduced-motion: reduce){
+  *{ transition:none !important; }
+}
